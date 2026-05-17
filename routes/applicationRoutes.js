@@ -1,11 +1,13 @@
 const applicationController = require("../controllers/applicationController");
+const authController = require("../controllers/authController");
+
 const express = require("express");
 
 const applicationRouter = express.Router();
 
 applicationRouter
   .route("/")
-  .get(applicationController.getAllApplications)
+  .get(authController.protect, applicationController.getAllApplications)
   .post(applicationController.createApplication);
 applicationRouter
   .route("/:id")

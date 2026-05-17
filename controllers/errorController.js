@@ -58,6 +58,6 @@ module.exports = function (err, req, res, next) {
       error = sendDupFieldsError(err);
     } else if (err.name === "ValidationError") error = sendValErrorDb(err);
 
-    sendErrorProd(error, res);
+    sendErrorProd(error ? error : err, res);
   }
 };

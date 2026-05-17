@@ -1,3 +1,5 @@
 module.exports = catchAsync = (f) => {
-  return (req, res, next) => f(req, res, next).catch(next);
+  return function (req, res, next) {
+    f(req, res, next).catch(next);
+  };
 };
