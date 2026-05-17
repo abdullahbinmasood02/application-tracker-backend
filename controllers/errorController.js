@@ -13,6 +13,14 @@ function sendDupFieldsError(error) {
   return new AppError(message, code);
 }
 
+function sendValErrorDb(err) {
+  console.log(Object.values(err.errors));
+  const message = Object.values(err.errors)
+    .map((error) => error.message)
+    .join(" ");
+  return new AppError(message, 401);
+}
+
 function sendErrorDev(error, res) {
   res.status(error.statusCode).json({
     status: error.status,
@@ -46,9 +54,10 @@ module.exports = function (err, req, res, next) {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === "production") {
     if (err.name === "CastError") error = sendCastErrorDb(err);
-    else if (err.errorResponse.code === 11000) {
+    else if (err?.errorResponse?.code === 11000) {
       error = sendDupFieldsError(err);
-    }
+    } else if (err.name === "ValidationError") error = sendValErrorDb(err);
+
     sendErrorProd(error, res);
   }
 };
