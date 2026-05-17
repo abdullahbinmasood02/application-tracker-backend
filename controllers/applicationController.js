@@ -8,17 +8,19 @@ class ApiFeatures {
   }
 
   filter() {
-    const excluded = ["pages", "fields", "sort", "limit"];
-    const clonedObj = { ...this.queryObj };
+    if (this.queryObj) {
+      const excluded = ["pages", "fields", "sort", "limit"];
+      const clonedObj = { ...this.queryObj };
 
-    excluded.forEach((item) => delete this.clonedObj[item]);
-    let filterStr = JSON.stringify(this.clonedObj);
+      excluded.forEach((item) => delete clonedObj[item]);
+      let filterStr = JSON.stringify(clonedObj);
 
-    filterStr = filterStr.replace(
-      /\b(lt|lte|gt|gte)\b/g,
-      (match) => `$${match}`,
-    );
-    this.query = this.query.find(JSON.parse(filterStr));
+      filterStr = filterStr.replace(
+        /\b(lt|lte|gt|gte)\b/g,
+        (match) => `$${match}`,
+      );
+      this.query = this.query.find(JSON.parse(filterStr));
+    }
     return this;
   }
 
@@ -32,6 +34,7 @@ class ApiFeatures {
     }
 
     this.query = this.query.sort(sortStr);
+    return this
   }
 
   getFields() {
@@ -62,9 +65,9 @@ class ApiFeatures {
   }
 }
 
-exports.getAllApplications = catchAsync(async function (res, req) {
+exports.getAllApplications = catchAsync(async function (req, res) {
   const query = applicationModel.find();
-  const apiFeatures = new ApiFeatures(query, this.query);
+  const apiFeatures = new ApiFeatures(query, req.query);
   const allApplications = await apiFeatures
     .filter()
     .sort()

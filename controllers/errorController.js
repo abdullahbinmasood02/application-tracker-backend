@@ -1,3 +1,18 @@
+const AppError = require("../utils/AppError");
+
+function sendCastErrorDb(error) {
+  const message = `invalid value ${error.value} for the path ${error.path}`;
+  const statusCode = 404;
+  console.log("hello");
+  return new AppError(message, statusCode);
+}
+
+function sendDupFieldsError(error) {
+  const message = `duplicate value: ${Object.values(error.errorResponse.keyValue)[0]}`;
+  const code = 400;
+  return new AppError(message, code);
+}
+
 function sendErrorDev(error, res) {
   res.status(error.statusCode).json({
     status: error.status,
@@ -22,14 +37,18 @@ function sendErrorProd(error, res) {
   }
 }
 
-exports.globalErrorHandler = function (err, req, res, next) {
-  let error = { ...err };
-  error.statusCode = error.statusCode || 500;
-  error.message = error.message || "error";
+module.exports = function (err, req, res, next) {
+  err.statusCode = err.statusCode || 500;
+  err.message = err.message || "error";
+  let error;
 
   if (process.env.NODE_ENV === "development") {
-    sendErrorDev(error, res);
+    sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === "production") {
+    if (err.name === "CastError") error = sendCastErrorDb(err);
+    else if (err.errorResponse.code === 11000) {
+      error = sendDupFieldsError(err);
+    }
     sendErrorProd(error, res);
   }
 };
